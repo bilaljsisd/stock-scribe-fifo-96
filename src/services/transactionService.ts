@@ -100,40 +100,49 @@ function convertToModelTransaction(transaction: any): Transaction {
 /**
  * Gets detailed FIFO breakdown for a stock output transaction
  */
-export async function getTransactionFifoDetails(outputId: string): Promise<StockOutputLine[]> {
+export async function getTransactionFifoDetails(transactionId: string): Promise<StockOutputLine[]> {
   try {
     // Try the Wails API first
     if (window.go && window.go["services.InventoryService"] && 
         typeof window.go["services.InventoryService"].GetStockOutputLines === 'function') {
-      const wailsOutputLines = await window.go["services.InventoryService"].GetStockOutputLines(outputId);
-      if (wailsOutputLines && wailsOutputLines.length > 0) {
-        // Convert Go/Wails camelCase format to our snake_case format if needed
-        const formattedLines = wailsOutputLines.map((line: any) => {
-          // If it's already in the right format, return as is
-          if (line.stock_output_id) {
-            return line;
-          }
+      // We need to get the transaction first to find its reference
+      const transactions = getStoredData<Transaction>(STORAGE_KEYS.TRANSACTIONS);
+      const transaction = transactions.find(t => t.id === transactionId);
+      
+      if (transaction && transaction.type === 'output') {
+        // Use reference_number (if it exists) or the ID itself
+        const outputId = transaction.reference_number || transaction.id;
+        
+        const wailsOutputLines = await window.go["services.InventoryService"].GetStockOutputLines(outputId);
+        if (wailsOutputLines && wailsOutputLines.length > 0) {
+          // Convert Go/Wails camelCase format to our snake_case format if needed
+          const formattedLines = wailsOutputLines.map((line: any) => {
+            // If it's already in the right format, return as is
+            if (line.stock_output_id) {
+              return line;
+            }
+            
+            // Convert from camelCase to snake_case
+            return {
+              id: line.id,
+              stock_output_id: line.stockOutputId,
+              stock_entry_id: line.stockEntryId,
+              quantity: line.quantity,
+              unit_price: line.unitPrice
+            };
+          });
           
-          // Convert from camelCase to snake_case
-          return {
-            id: line.id,
-            stock_output_id: line.stockOutputId,
-            stock_entry_id: line.stockEntryId,
-            quantity: line.quantity,
-            unit_price: line.unitPrice
-          };
-        });
-        
-        // Enrich output lines with stock entry details
-        const stockEntries = getStoredData<StockEntry>(STORAGE_KEYS.STOCK_ENTRIES);
-        
-        return formattedLines.map(line => {
-          const entry = stockEntries.find(e => e.id === line.stock_entry_id);
-          return {
-            ...line,
-            stock_entry: entry
-          };
-        });
+          // Enrich output lines with stock entry details
+          const stockEntries = getStoredData<StockEntry>(STORAGE_KEYS.STOCK_ENTRIES);
+          
+          return formattedLines.map(line => {
+            const entry = stockEntries.find(e => e.id === line.stock_entry_id);
+            return {
+              ...line,
+              stock_entry: entry
+            };
+          });
+        }
       }
     }
   } catch (error) {
@@ -141,6 +150,16 @@ export async function getTransactionFifoDetails(outputId: string): Promise<Stock
   }
   
   // Fallback to local storage
+  const transactions = getStoredData<Transaction>(STORAGE_KEYS.TRANSACTIONS);
+  const transaction = transactions.find(t => t.id === transactionId);
+  
+  if (!transaction || transaction.type !== 'output') {
+    return [];
+  }
+  
+  // Use reference_number if available, otherwise use the ID directly
+  const outputId = transaction.reference_number || transaction.id;
+  
   const outputLines = getStoredData<StockOutputLine>(STORAGE_KEYS.OUTPUT_LINES);
   const matchingLines = outputLines.filter(line => line.stock_output_id === outputId);
   

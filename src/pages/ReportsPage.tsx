@@ -109,7 +109,7 @@ const ReportsPage = () => {
       setLoadingDetails(prev => ({ ...prev, [transactionId]: true }));
       
       try {
-        const details = await getTransactionFifoDetails(transaction.reference_id);
+        const details = await getTransactionFifoDetails(transaction.id);
         setExpandedRowDetails(prev => ({
           ...prev,
           [transactionId]: details
@@ -313,7 +313,7 @@ const ReportsPage = () => {
           setLoadingDetails(prev => ({ ...prev, [transaction.id]: true }));
           
           try {
-            const details = await getTransactionFifoDetails(transaction.reference_id);
+            const details = await getTransactionFifoDetails(transaction.id);
             setExpandedRowDetails(prev => ({
               ...prev,
               [transaction.id]: details

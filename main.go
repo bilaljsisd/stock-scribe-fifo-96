@@ -40,6 +40,10 @@ func main() {
 			WebviewIsTransparent: false,
 			WindowIsTranslucent:  false,
 			DisableWindowIcon:    false,
+			// Add these to ensure window is visible
+			WindowIsResizable:    true,
+			Theme:                windows.SystemDefault,
+			IsZoomControlEnabled: false,
 		},
 		Debug: options.Debug{
 			OpenInspectorOnStartup: false,

@@ -48,4 +48,6 @@ export interface Transaction {
   // For outputs
   total_cost?: number;
   reference_number?: string | null;
+  // Ensure compatibility with Go backend which might use reference_id
+  reference_id?: string;
 }
