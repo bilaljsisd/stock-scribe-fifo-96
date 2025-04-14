@@ -10,7 +10,12 @@ if ! command -v wails &> /dev/null; then
     go install github.com/wailsapp/wails/v2/cmd/wails@latest
 fi
 
-# Build the application
-wails build
+# Clean previous builds
+echo "Cleaning previous builds..."
+rm -rf build
 
-echo "Build complete! You can find your executable in the build directory."
+# Build the application for production
+echo "Building for production..."
+wails build -platform windows/amd64 -clean -webview2 embed
+
+echo "Build complete! You can find your executable in the build/bin directory."

@@ -9,5 +9,22 @@
   "author": {
     "name": "StockScribe",
     "email": "info@stockscribe.com"
+  },
+  "info": {
+    "companyName": "StockScribe",
+    "productName": "StockScribe FIFO",
+    "productVersion": "1.0.0",
+    "copyright": "Copyright © 2023 StockScribe",
+    "comments": "StockScribe FIFO Inventory Management"
+  },
+  "bindings": {
+    "javaPackage": "com.stockscribe",
+    "goModuleName": "stock-scribe-fifo"
+  },
+  "build": {
+    "windows": {
+      "webview2": "embed",
+      "windowsVersion": "10.0.19041.0"
+    }
   }
 }
